@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Safety Jeopardy — PSA Week 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --blue: #1a3a6e;
+    --gold: #f0b429;
+    --gold-light: #ffd166;
+    --white: #f8f9ff;
+    --correct: #22c55e;
+    --wrong: #ef4444;
+    --card-bg: #132244;
+    --card-hover: #1d3460;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(2px 2px at 40% 50%, rgba(240,180,41,0.1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; padding: 2rem; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  /* ── NAME SCREEN ── */
+  #name-screen {
+    text-align: center;
+    gap: 2rem;
+  }
+
+  .logo-badge {
+    background: var(--gold);
+    color: var(--navy);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    padding: 0.35rem 1rem;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: 0.03em;
+    color: var(--white);
+  }
+
+  h1 span { color: var(--gold); }
+
+  .subtitle {
+    color: rgba(248,249,255,0.5);
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .rules-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    max-width: 480px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .rules-card .rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: rgba(248,249,255,0.8);
+    line-height: 1.5;
+  }
+
+  .rule-num {
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.75rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .name-input-wrap {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid rgba(240,180,41,0.3);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    padding: 0.85rem 1.2rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus { border-color: var(--gold); }
+  input[type="text"]::placeholder { color: rgba(248,249,255,0.3); }
+
+  .btn {
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    border-radius: 6px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    padding: 0.85rem 1.8rem;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+  }
+  .btn-outline:hover { background: rgba(240,180,41,0.1); }
+
+  /* ── BOARD SCREEN ── */
+  #board-screen { padding: 1.5rem; gap: 1.5rem; }
+
+  .board-header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .board-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .picks-tracker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pick-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: transparent;
+    transition: background 0.2s;
+  }
+  .pick-dot.filled { background: var(--gold); }
+
+  .picks-label {
+    font-size: 0.85rem;
+    color: rgba(248,249,255,0.6);
+    margin-left: 0.4rem;
+    letter-spacing: 0.03em;
+  }
+
+  .score-display {
+    background: var(--card-bg);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 6px;
+    padding: 0.4rem 1rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  /* Board grid */
+  .board {
+    width: 100%;
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .cat-header {
+    background: var(--blue);
+    border-radius: 6px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    line-height: 1.2;
+  }
+
+  .q-cell {
+    background: var(--card-bg);
+    border: 1px solid rgba(240,180,41,0.1);
+    border-radius: 6px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .q-cell:hover:not(.used):not(.locked) {
+    background: var(--card-hover);
+    border-color: rgba(240,180,41,0.4);
+    transform: translateY(-2px);
+  }
+
+  .q-cell.used {
+    background: rgba(19,34,68,0.4);
+    cursor: default;
+    color: transparent;
+  }
+
+  .q-cell.used::after {
+    content: '✓';
+    color: rgba(34,197,94,0.5);
+    font-size: 1.2rem;
+    position: absolute;
+  }
+
+  .q-cell.locked:not(.used) {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  /* ── QUESTION MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,22,40,0.9);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--card-bg);
+    border: 1px solid rgba(240,180,41,0.3);
+    border-radius: 12px;
+    max-width: 560px;
+    width: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: slideUp 0.2s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-points {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
+  .modal-category {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+
+  .modal-question {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: var(--white);
+  }
+
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .answer-btn {
+    background: rgba(26,58,110,0.6);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    text-align: left;
+    line-height: 1.4;
+  }
+
+  .answer-btn:hover { background: rgba(26,58,110,0.9); border-color: rgba(240,180,41,0.4); }
+
+  .answer-btn.correct {
+    background: rgba(34,197,94,0.2);
+    border-color: var(--correct);
+    color: var(--correct);
+  }
+
+  .answer-btn.wrong {
+    background: rgba(239,68,68,0.15);
+    border-color: var(--wrong);
+    color: rgba(248,249,255,0.4);
+  }
+
+  .feedback-bar {
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: none;
+  }
+
+  .feedback-bar.correct { background: rgba(34,197,94,0.15); color: var(--correct); display: block; }
+  .feedback-bar.wrong { background: rgba(239,68,68,0.12); color: var(--wrong); display: block; }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* ── RESULT SCREEN ── */
+  #result-screen { text-align: center; gap: 1.5rem; }
+
+  .result-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 12vw, 8rem);
+    color: var(--gold);
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(240,180,41,0.4);
+  }
+
+  .result-label {
+    color: rgba(248,249,255,0.5);
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .result-summary {
+    background: var(--card-bg);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 8px;
+    padding: 1.2rem 2rem;
+    display: flex;
+    gap: 2rem;
+    font-size: 0.9rem;
+    color: rgba(248,249,255,0.7);
+  }
+
+  .result-summary strong { color: var(--white); font-size: 1.1rem; display: block; }
+
+  .name-submit-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .name-submit-wrap p {
+    color: rgba(248,249,255,0.6);
+    font-size: 0.9rem;
+  }
+
+  .submit-row { display: flex; gap: 0.75rem; width: 100%; }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard-screen { gap: 1.5rem; }
+
+  #leaderboard-screen h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 0.05em;
+    color: var(--gold);
+  }
+
+  .lb-table {
+    width: 100%;
+    max-width: 500px;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+  }
+
+  .lb-table th {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(248,249,255,0.4);
+    padding: 0 1rem 0.5rem;
+    text-align: left;
+  }
+
+  .lb-table td {
+    background: var(--card-bg);
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .lb-table td:first-child { border-radius: 6px 0 0 6px; }
+  .lb-table td:last-child { border-radius: 0 6px 6px 0; text-align: right; }
+
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: rgba(248,249,255,0.3);
+    width: 2rem;
+  }
+
+  .lb-rank.top { color: var(--gold); }
+
+  .lb-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .lb-highlight td { border-top: 1px solid rgba(240,180,41,0.3); border-bottom: 1px solid rgba(240,180,41,0.3); }
+  .lb-highlight td:first-child { border-left: 1px solid rgba(240,180,41,0.3); }
+  .lb-highlight td:last-child { border-right: 1px solid rgba(240,180,41,0.3); }
+
+  .empty-lb {
+    color: rgba(248,249,255,0.4);
+    font-size: 0.9rem;
+    padding: 2rem;
+  }
+
+  .lb-actions { display: flex; gap: 0.75rem; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- NAME SCREEN -->
+  <div id="name-screen" class="screen active">
+    <div class="logo-badge">Patient Safety Awareness Week</div>
+    <h1>PATIENT<br><span>SAFETY</span><br>JEOPARDY</h1>
+    <p class="subtitle">Pick 3 questions · Score as high as you can</p>
+
+    <div class="rules-card">
+      <div class="rule"><span class="rule-num">1</span><span>Choose <strong>exactly 3 questions</strong> from the board — big points or safe points, your call.</span></div>
+      <div class="rule"><span class="rule-num">2</span><span>Answer correctly to <strong>earn the points</strong>. Wrong answers earn nothing.</span></div>
+      <div class="rule"><span class="rule-num">3</span><span>Your score is added to the <strong>leaderboard</strong> — see where you rank!</span></div>
+    </div>
+
+    <div class="name-input-wrap">
+      <input type="text" id="player-name" placeholder="Enter your name" maxlength="30" />
+      <button class="btn" id="start-btn" onclick="startGame()">Play →</button>
+    </div>
+  </div>
+
+  <!-- BOARD SCREEN -->
+  <div id="board-screen" class="screen">
+    <div class="board-header">
+      <h2>The Board</h2>
+      <div class="picks-tracker">
+        <div class="pick-dot" id="dot-0"></div>
+        <div class="pick-dot" id="dot-1"></div>
+        <div class="pick-dot" id="dot-2"></div>
+        <span class="picks-label">picks left: <span id="picks-left">3</span></span>
+      </div>
+      <div class="score-display">$<span id="live-score">0</span></div>
+    </div>
+    <div class="board" id="board"></div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen" class="screen">
+    <p class="result-label">Final Score</p>
+    <div class="result-score">$<span id="final-score">0</span></div>
+    <div class="result-summary">
+      <div><strong id="res-correct">0</strong>Correct</div>
+      <div><strong id="res-wrong">0</strong>Wrong</div>
+      <div><strong id="res-points">0</strong>Points Earned</div>
+    </div>
+    <div class="name-submit-wrap">
+      <p>Click below to submit your score to the leaderboard — it opens a quick form, already filled in for you!</p>
+      <div class="submit-row">
+        <button class="btn" onclick="submitScore()">Submit to Leaderboard →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD SCREEN -->
+  <div id="leaderboard-screen" class="screen">
+    <h2>🏆 Leaderboard</h2>
+    <table class="lb-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="lb-body">
+        <tr><td colspan="3" class="empty-lb">No scores yet — be the first!</td></tr>
+      </tbody>
+    </table>
+    <div class="lb-actions">
+      <button class="btn" onclick="playAgain()">Play Again</button>
+      <button class="btn btn-outline" onclick="showScreen('name-screen')">Home</button>
+    </div>
+  </div>
+
+  <!-- QUESTION MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div>
+        <div class="modal-points" id="modal-points">$200</div>
+        <div class="modal-category" id="modal-cat">Category</div>
+      </div>
+      <div class="modal-question" id="modal-q"></div>
+      <div class="answers-grid" id="answers-grid"></div>
+      <div class="feedback-bar" id="feedback"></div>
+      <div class="modal-footer">
+        <button class="btn" id="modal-next-btn" onclick="closeModal()" style="display:none">Next →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  {
+    name: "HAND HYGIENE",
+    questions: [
+      { points: 200, q: "What is the minimum number of seconds you should spend washing your hands with soap and water?", answers: ["10 seconds", "20 seconds", "30 seconds", "60 seconds"], correct: 1 },
+      { points: 400, q: "Which of the following situations requires soap and water rather than alcohol-based hand sanitizer?", answers: ["After removing gloves", "Before patient contact", "After contact with C. diff", "Before medication prep"], correct: 2 },
+      { points: 600, q: "The WHO identifies '5 Moments for Hand Hygiene.' Which moment is often most overlooked?", answers: ["Before touching a patient", "After body fluid exposure", "After touching patient surroundings", "Before a clean/aseptic procedure"], correct: 2 },
+      { points: 800, q: "Hand hygiene compliance rates in U.S. healthcare settings average approximately what percentage?", answers: ["85–90%", "70–75%", "30–50%", "60–65%"], correct: 2 },
+      { points: 1000, q: "Alcohol-based hand rubs are effective against most pathogens but have reduced efficacy against which type of organism?", answers: ["MRSA", "Influenza A", "Clostridioides difficile spores", "Hepatitis B virus"], correct: 2 },
+    ]
+  },
+  {
+    name: "MEDICATION SAFETY",
+    questions: [
+      { points: 200, q: "The 'Five Rights' of medication administration include the right patient, right drug, right dose, right route, and what else?", answers: ["Right color", "Right time", "Right temperature", "Right physician"], correct: 1 },
+      { points: 400, q: "Which action BEST reduces the risk of a look-alike/sound-alike (LASA) medication error?", answers: ["Storing similar drugs together", "Using tall-man lettering on labels", "Alphabetizing the medication cart", "Rounding doses to the nearest whole number"], correct: 1 },
+      { points: 600, q: "High-alert medications require extra precautions because they:", answers: ["Cost more than standard drugs", "Are harder to administer", "Have a higher risk of significant harm if misused", "Require refrigeration"], correct: 2 },
+      { points: 800, q: "An independent double-check is MOST appropriate for which of the following?", answers: ["Oral vitamins", "Insulin infusions", "Saline flushes", "Antacids"], correct: 1 },
+      { points: 1000, q: "What is 'medication reconciliation' primarily designed to prevent?", answers: ["Drug diversion by staff", "Discrepancies between medication lists across care transitions", "Adverse reactions to new prescriptions", "Over-prescribing of controlled substances"], correct: 1 },
+    ]
+  },
+  {
+    name: "INFECTION CONTROL",
+    questions: [
+      { points: 200, q: "A patient on Contact Precautions requires which PPE when entering the room?", answers: ["Mask only", "Gloves only", "Gloves and gown", "Full face shield and respirator"], correct: 2 },
+      { points: 400, q: "HAI stands for:", answers: ["High-Acuity Intervention", "Healthcare-Associated Infection", "Hospital Antibiotic Index", "Human Antibody Immunization"], correct: 1 },
+      { points: 600, q: "Which bundle element is MOST important for preventing central line-associated bloodstream infections (CLABSI)?", answers: ["Daily fever monitoring", "Chlorhexidine skin antisepsis during insertion", "Weekly line changes", "Saline locking after each use"], correct: 1 },
+      { points: 800, q: "Respiratory hygiene/cough etiquette should be offered to symptomatic patients starting where?", answers: ["The ICU", "The nursing unit", "The point of entry (reception/waiting area)", "The discharge lounge"], correct: 2 },
+      { points: 1000, q: "What does 'sterilization' achieve that 'disinfection' does not?", answers: ["Removes organic debris", "Eliminates all microbial life including spores", "Destroys gram-negative bacteria only", "Prevents biofilm formation"], correct: 1 },
+    ]
+  },
+  {
+    name: "SPEAK UP / REPORTING",
+    questions: [
+      { points: 200, q: "What does the acronym CUS stand for in patient safety communication?", answers: ["Call, Understand, Solve", "Concerned, Uncomfortable, Safety issue", "Critical, Urgent, Systemic", "Clarify, Update, Summarize"], correct: 1 },
+      { points: 400, q: "Incident reports should be completed:", answers: ["Only when a patient is harmed", "Only if a physician requests it", "For near misses and unsafe conditions, not just actual harm", "At the end of the week in a batch"], correct: 2 },
+      { points: 600, q: "A 'near miss' in patient safety is best defined as:", answers: ["A minor error with no documentation needed", "An event that could have caused harm but did not reach the patient", "A complaint from a patient family member", "An error that caused minor temporary harm"], correct: 1 },
+      { points: 800, q: "Psychological safety in a healthcare team means staff feel:", answers: ["Physically safe from patient violence", "Free to speak up without fear of punishment or ridicule", "Confident in their clinical skills", "Protected from malpractice claims"], correct: 1 },
+      { points: 1000, q: "The 'Just Culture' model in healthcare distinguishes between human error, at-risk behavior, and:", answers: ["Near misses", "Sentinel events", "Reckless behavior", "Systemic failures"], correct: 2 },
+    ]
+  },
+  {
+    name: "PATIENT IDENTIFICATION",
+    questions: [
+      { points: 200, q: "The Joint Commission requires at least how many patient identifiers before providing care or administering medications?", answers: ["One", "Two", "Three", "Four"], correct: 1 },
+      { points: 400, q: "Which of the following is an acceptable patient identifier?", answers: ["Room number", "Bed number", "Date of birth", "Diagnosis"], correct: 2 },
+      { points: 600, q: "Before a surgical procedure, what process requires the patient, surgeon, and team to confirm site, procedure, and patient identity?", answers: ["Time-out", "Handoff", "Huddle", "SBAR"], correct: 0 },
+      { points: 800, q: "Wristband identification errors most often occur during which process?", answers: ["Discharge", "Transfer between units", "Admission registration", "Blood transfusion"], correct: 2 },
+      { points: 1000, q: "In situations where a patient cannot state their name (e.g., unconscious), the BEST alternative identification method is:", answers: ["Ask the nearest staff member", "Use the room number temporarily", "Verify with a family member AND check the wristband", "Skip verification if time-sensitive"], correct: 2 },
+    ]
+  },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let playerName = '';
+let picksRemaining = 3;
+let currentScore = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let currentQuestion = null;
+let answered = false;
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'psj_leaderboard_v1';
+
+async function getLeaderboard() {
+  try {
+    const result = await window.storage.get(STORAGE_KEY, true);
+    return result ? JSON.parse(result.value) : [];
+  } catch { return []; }
+}
+
+async function saveLeaderboard(board) {
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(board), true);
+  } catch(e) { console.error('Storage error', e); }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── GAME START ────────────────────────────────────────────────────────────────
+function startGame() {
+  const nameInput = document.getElementById('player-name').value.trim();
+  if (!nameInput) { document.getElementById('player-name').focus(); return; }
+  playerName = nameInput;
+  picksRemaining = 3;
+  currentScore = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  buildBoard();
+  updatePicksUI();
+  showScreen('board-screen');
+}
+
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Headers
+  CATEGORIES.forEach(cat => {
+    const h = document.createElement('div');
+    h.className = 'cat-header';
+    h.textContent = cat.name;
+    board.appendChild(h);
+  });
+
+  // Questions (row by row)
+  const pointLevels = [200, 400, 600, 800, 1000];
+  pointLevels.forEach((pts, rowIdx) => {
+    CATEGORIES.forEach((cat, colIdx) => {
+      const q = cat.questions[rowIdx];
+      const cell = document.createElement('div');
+      cell.className = 'q-cell';
+      cell.textContent = '$' + pts;
+      cell.dataset.cat = colIdx;
+      cell.dataset.row = rowIdx;
+      cell.onclick = () => openQuestion(colIdx, rowIdx, cell);
+      board.appendChild(cell);
+    });
+  });
+}
+
+// ── QUESTION MODAL ────────────────────────────────────────────────────────────
+function openQuestion(catIdx, rowIdx, cell) {
+  if (picksRemaining === 0 || cell.classList.contains('used') || cell.classList.contains('locked')) return;
+
+  const cat = CATEGORIES[catIdx];
+  const q = cat.questions[rowIdx];
+  currentQuestion = { catIdx, rowIdx, q, cell };
+  answered = false;
+
+  document.getElementById('modal-points').textContent = '$' + q.points;
+  document.getElementById('modal-cat').textContent = cat.name;
+  document.getElementById('modal-q').textContent = q.q;
+
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = '';
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = ans;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('feedback').className = 'feedback-bar';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('modal-next-btn').style.display = 'none';
+  document.getElementById('modal').classList.add('active');
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const { q, cell } = currentQuestion;
+  const buttons = document.querySelectorAll('.answer-btn');
+  const feedback = document.getElementById('feedback');
+
+  buttons.forEach((btn, i) => {
+    btn.onclick = null;
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === idx) btn.classList.add('wrong');
+  });
+
+  if (idx === q.correct) {
+    currentScore += q.points;
+    correctCount++;
+    feedback.textContent = '✓ Correct! +$' + q.points;
+    feedback.className = 'feedback-bar correct';
+  } else {
+    wrongCount++;
+    feedback.textContent = '✗ Not quite. The answer was: ' + q.answers[q.correct];
+    feedback.className = 'feedback-bar wrong';
+  }
+
+  // Mark cell used
+  cell.classList.add('used');
+  picksRemaining--;
+  updatePicksUI();
+
+  document.getElementById('modal-next-btn').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  document.getElementById('live-score').textContent = currentScore.toLocaleString();
+
+  if (picksRemaining === 0) {
+    setTimeout(showResults, 400);
+  }
+}
+
+function updatePicksUI() {
+  document.getElementById('picks-left').textContent = picksRemaining;
+  for (let i = 0; i < 3; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.toggle('filled', i < picksRemaining);
+  }
+
+  if (picksRemaining === 0) {
+    document.querySelectorAll('.q-cell:not(.used)').forEach(c => c.classList.add('locked'));
+  }
+}
+
+// ── RESULTS ───────────────────────────────────────────────────────────────────
+function showResults() {
+  document.getElementById('final-score').textContent = currentScore.toLocaleString();
+  document.getElementById('res-correct').textContent = correctCount;
+  document.getElementById('res-wrong').textContent = wrongCount;
+  document.getElementById('res-points').textContent = '$' + currentScore.toLocaleString();
+  showScreen('result-screen');
+}
+
+function submitScore() {
+  const baseUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSd2V4WtAuPBoOhTXAeD93fZaP_83TMiSAR4gWEJCakRZzpPWg/viewform';
+  const url = `${baseUrl}?usp=pp_url&entry.359214247=${encodeURIComponent(playerName)}&entry.558243074=${encodeURIComponent(currentScore)}`;
+  window.open(url, '_blank');
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+async function showLeaderboard() {
+  const board = await getLeaderboard();
+  const tbody = document.getElementById('lb-body');
+  tbody.innerHTML = '';
+
+  if (board.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty-lb">No scores yet — be the first!</td></tr>';
+  } else {
+    board.slice(0, 15).forEach((entry, i) => {
+      const tr = document.createElement('tr');
+      const isPlayer = entry.name === playerName && entry.score === currentScore;
+      if (isPlayer) tr.className = 'lb-highlight';
+      tr.innerHTML = `
+        <td class="lb-rank ${i < 3 ? 'top' : ''}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
+        <td>${entry.name}${isPlayer ? ' <span style="color:var(--gold);font-size:0.75rem">← you</span>' : ''}</td>
+        <td class="lb-score">$${entry.score.toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  showScreen('leaderboard-screen');
+}
+
+function playAgain() {
+  document.getElementById('player-name').value = playerName;
+  picksRemaining = 3;
+  currentScore = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  buildBoard();
+  updatePicksUI();
+  document.getElementById('live-score').textContent = '0';
+  showScreen('board-screen');
+}
+
+// ── ENTER KEY ─────────────────────────────────────────────────────────────────
+document.getElementById('player-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
+</script>
+</body>
+</html>
